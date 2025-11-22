@@ -1,5 +1,6 @@
 package com.coursemanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,6 +22,7 @@ public class Enrollment {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Student student;
     
     @Column(name = "course_id", nullable = false)
@@ -28,6 +30,7 @@ public class Enrollment {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Course course;
     
     @Column(name = "enrollment_date")

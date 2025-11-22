@@ -136,7 +136,7 @@ CREATE TABLE users (
     username VARCHAR(50) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, -- Hashed password (MD5)
     email VARCHAR(100) UNIQUE NOT NULL,
-    role ENUM('admin', 'instructor', 'student') NOT NULL,
+    role ENUM('ADMIN', 'INSTRUCTOR', 'STUDENT') NOT NULL,
     reference_id INT DEFAULT 0, -- ID của instructor hoặc student (0 nếu admin)
     -- Không dùng FOREIGN KEY vì reference_id có thể tham chiếu đến 2 bảng khác nhau
     -- (instructors hoặc students) tùy theo role

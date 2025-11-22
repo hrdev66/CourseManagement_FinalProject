@@ -1,5 +1,6 @@
 package com.coursemanagement.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -17,6 +18,7 @@ public class Announcement {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Course course;
     
     @Column(name = "instructor_id", nullable = false)
@@ -24,6 +26,7 @@ public class Announcement {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id", insertable = false, updatable = false)
+    @JsonIgnore
     private Instructor instructor;
     
     @Column(name = "title", nullable = false)
