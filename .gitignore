@@ -46,11 +46,13 @@ nbdist/
 
 # Maven
 target/
+backend/target/
 pom.xml.tag
 pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 release.properties
+.mvn/wrapper/maven-wrapper.jar
 
 # Database files
 *.db
@@ -67,3 +69,11 @@ Thumbs.db
 *.bak
 *.swp
 *~
+
+# Node modules
+node_modules/
+frontend/node_modules/
+
+# Build files
+frontend/dist/
+frontend/build/

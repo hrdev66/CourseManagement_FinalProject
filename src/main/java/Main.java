@@ -1,4 +1,4 @@
-import gui.MainFrame;
+import gui.LoginFrame;
 
 import javax.swing.*;
 
@@ -15,9 +15,9 @@ public class Main {
             e.printStackTrace();
         }
 
-        // Chạy ứng dụng trên Event Dispatch Thread
+        // Chạy màn hình đăng nhập trước
         SwingUtilities.invokeLater(() -> {
-            new MainFrame();
+            new LoginFrame();
         });
     }
 }

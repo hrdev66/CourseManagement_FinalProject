@@ -87,6 +87,56 @@ public class DatabaseInitializer {
                 "FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE, " +
                 "FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE)");
 
+        // Tạo bảng assignments
+        stmt.execute("CREATE TABLE IF NOT EXISTS assignments (" +
+                "assignment_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "course_id INTEGER NOT NULL, " +
+                "title TEXT NOT NULL, " +
+                "description TEXT, " +
+                "due_date DATE, " +
+                "max_score INTEGER DEFAULT 100, " +
+                "assignment_type TEXT DEFAULT 'homework' CHECK(assignment_type IN ('homework', 'quiz', 'project')), " +
+                "status TEXT DEFAULT 'published' CHECK(status IN ('published', 'draft')), " +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE)");
+
+        // Tạo bảng submissions
+        stmt.execute("CREATE TABLE IF NOT EXISTS submissions (" +
+                "submission_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "assignment_id INTEGER NOT NULL, " +
+                "student_id INTEGER NOT NULL, " +
+                "content TEXT, " +
+                "attachment TEXT, " +
+                "score INTEGER, " +
+                "status TEXT DEFAULT 'submitted' CHECK(status IN ('submitted', 'graded', 'late')), " +
+                "submitted_date DATE DEFAULT (date('now')), " +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (assignment_id) REFERENCES assignments(assignment_id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE)");
+
+        // Tạo bảng announcements
+        stmt.execute("CREATE TABLE IF NOT EXISTS announcements (" +
+                "announcement_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "course_id INTEGER NOT NULL, " +
+                "instructor_id INTEGER NOT NULL, " +
+                "title TEXT NOT NULL, " +
+                "content TEXT, " +
+                "priority TEXT DEFAULT 'normal' CHECK(priority IN ('normal', 'important', 'urgent')), " +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                "FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE, " +
+                "FOREIGN KEY (instructor_id) REFERENCES instructors(instructor_id) ON DELETE CASCADE)");
+
+        // Tạo bảng users (không dùng FOREIGN KEY vì reference_id có thể tham chiếu đến 2 bảng)
+        stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
+                "user_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "username TEXT UNIQUE NOT NULL, " +
+                "password TEXT NOT NULL, " +
+                "email TEXT UNIQUE NOT NULL, " +
+                "role TEXT NOT NULL CHECK(role IN ('admin', 'instructor', 'student')), " +
+                "reference_id INTEGER DEFAULT 0, " +
+                "created_at DATETIME DEFAULT CURRENT_TIMESTAMP, " +
+                "last_login DATETIME)");
+
         // Kiểm tra xem đã có dữ liệu chưa
         var rs = stmt.executeQuery("SELECT COUNT(*) as count FROM instructors");
         if (rs.next() && rs.getInt("count") == 0) {
@@ -147,7 +197,48 @@ public class DatabaseInitializer {
                 "(2, 4, 5, 'Nội dung chi tiết, dễ hiểu'), " +
                 "(1, 2, 4, 'Khóa học tốt nhưng cần thêm bài tập thực hành')");
 
+        // Thêm bài tập (assignments)
+        stmt.execute("INSERT INTO assignments (course_id, title, description, due_date, max_score, assignment_type, status) VALUES " +
+                "(1, 'Bài tập 1: Làm quen với Java', 'Viết chương trình Hello World và các ví dụ cơ bản', date('now', '+7 days'), 100, 'homework', 'published'), " +
+                "(1, 'Bài tập 2: Xử lý mảng', 'Thực hành với mảng một chiều và hai chiều', date('now', '+14 days'), 100, 'homework', 'published'), " +
+                "(2, 'Quiz 1: Spring Boot Basics', 'Câu hỏi trắc nghiệm về Spring Boot', date('now', '+5 days'), 50, 'quiz', 'published'), " +
+                "(2, 'Dự án cuối kỳ: Web Application', 'Xây dựng ứng dụng web hoàn chỉnh', date('now', '+60 days'), 200, 'project', 'published'), " +
+                "(3, 'Bài tập Data Analysis', 'Phân tích dữ liệu với Pandas', date('now', '+10 days'), 150, 'homework', 'published')");
+
+        // Thêm bài nộp (submissions)
+        stmt.execute("INSERT INTO submissions (assignment_id, student_id, content, status, submitted_date) VALUES " +
+                "(1, 1, 'Đã hoàn thành bài tập Hello World và các ví dụ cơ bản', 'graded', date('now')), " +
+                "(1, 2, 'Bài tập đã hoàn thành', 'submitted', date('now')), " +
+                "(2, 1, 'Đã làm bài tập mảng', 'submitted', date('now'))");
+
+        // Cập nhật điểm cho bài nộp đã chấm
+        stmt.execute("UPDATE submissions SET score = 95 WHERE submission_id = 1");
+
+        // Thêm thông báo (announcements)
+        stmt.execute("INSERT INTO announcements (course_id, instructor_id, title, content, priority) VALUES " +
+                "(1, 1, 'Chào mừng các bạn đến với khóa học Java', 'Chào mừng các bạn đã đăng ký khóa học Lập trình Java cơ bản. Chúng ta sẽ bắt đầu vào tuần tới!', 'normal'), " +
+                "(1, 1, 'Thông báo về lịch thi', 'Lịch thi giữa kỳ sẽ được thông báo sớm. Các bạn chú ý theo dõi!', 'important'), " +
+                "(2, 2, 'Tài liệu học tập đã được cập nhật', 'Các tài liệu và slide bài giảng đã được cập nhật trên hệ thống. Vui lòng tải về!', 'normal'), " +
+                "(2, 2, 'Deadline nộp dự án cuối kỳ', 'Nhắc nhở: Dự án cuối kỳ cần nộp trước ngày 31/12. Các bạn chú ý!', 'urgent')");
+
+        // Thêm tài khoản mẫu (password: 123456 -> MD5: e10adc3949ba59abbe56e057f20f883e)
+        stmt.execute("INSERT INTO users (username, password, email, role, reference_id) VALUES " +
+                "('admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@course.com', 'admin', 0), " +
+                "('nva', 'e10adc3949ba59abbe56e057f20f883e', 'nva@email.com', 'instructor', 1), " +
+                "('ttb', 'e10adc3949ba59abbe56e057f20f883e', 'ttb@email.com', 'instructor', 2), " +
+                "('lvc', 'e10adc3949ba59abbe56e057f20f883e', 'lvc@email.com', 'instructor', 3), " +
+                "('ptd', 'e10adc3949ba59abbe56e057f20f883e', 'ptd@email.com', 'instructor', 4), " +
+                "('hvm', 'e10adc3949ba59abbe56e057f20f883e', 'hvm@student.com', 'student', 1), " +
+                "('dtl', 'e10adc3949ba59abbe56e057f20f883e', 'dtl@student.com', 'student', 2), " +
+                "('vvn', 'e10adc3949ba59abbe56e057f20f883e', 'vvn@student.com', 'student', 3), " +
+                "('bth', 'e10adc3949ba59abbe56e057f20f883e', 'bth@student.com', 'student', 4), " +
+                "('dvt', 'e10adc3949ba59abbe56e057f20f883e', 'dvt@student.com', 'student', 5)");
+
         System.out.println("Đã thêm dữ liệu mẫu vào database!");
+        System.out.println("Tài khoản mẫu:");
+        System.out.println("  - Admin: admin / 123456");
+        System.out.println("  - Giảng viên: nva / 123456, ttb / 123456, ...");
+        System.out.println("  - Sinh viên: hvm / 123456, dtl / 123456, ...");
     }
 }
 

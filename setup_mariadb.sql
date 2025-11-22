@@ -88,6 +88,62 @@ CREATE TABLE reviews (
     FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Bảng Bài tập (Assignments)
+CREATE TABLE assignments (
+    assignment_id INT PRIMARY KEY AUTO_INCREMENT,
+    course_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    description TEXT,
+    due_date DATE,
+    max_score INT DEFAULT 100,
+    assignment_type ENUM('homework', 'quiz', 'project') DEFAULT 'homework',
+    status ENUM('published', 'draft') DEFAULT 'published',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng Bài nộp (Submissions)
+CREATE TABLE submissions (
+    submission_id INT PRIMARY KEY AUTO_INCREMENT,
+    assignment_id INT NOT NULL,
+    student_id INT NOT NULL,
+    content TEXT,
+    attachment VARCHAR(500),
+    score INT,
+    status ENUM('submitted', 'graded', 'late') DEFAULT 'submitted',
+    submitted_date DATE DEFAULT (CURRENT_DATE),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (assignment_id) REFERENCES assignments(assignment_id) ON DELETE CASCADE,
+    FOREIGN KEY (student_id) REFERENCES students(student_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng Thông báo (Announcements)
+CREATE TABLE announcements (
+    announcement_id INT PRIMARY KEY AUTO_INCREMENT,
+    course_id INT NOT NULL,
+    instructor_id INT NOT NULL,
+    title VARCHAR(200) NOT NULL,
+    content TEXT,
+    priority ENUM('normal', 'important', 'urgent') DEFAULT 'normal',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (course_id) REFERENCES courses(course_id) ON DELETE CASCADE,
+    FOREIGN KEY (instructor_id) REFERENCES instructors(instructor_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Bảng Users/Tài khoản (Authentication & Authorization)
+CREATE TABLE users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL, -- Hashed password (MD5)
+    email VARCHAR(100) UNIQUE NOT NULL,
+    role ENUM('admin', 'instructor', 'student') NOT NULL,
+    reference_id INT DEFAULT 0, -- ID của instructor hoặc student (0 nếu admin)
+    -- Không dùng FOREIGN KEY vì reference_id có thể tham chiếu đến 2 bảng khác nhau
+    -- (instructors hoặc students) tùy theo role
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Thêm dữ liệu mẫu
 
 -- Giảng viên mẫu
@@ -137,7 +193,53 @@ INSERT INTO reviews (course_id, student_id, rating, comment) VALUES
 (2, 4, 5, 'Nội dung chi tiết, dễ hiểu'),
 (1, 2, 4, 'Khóa học tốt nhưng cần thêm bài tập thực hành');
 
+-- Bài tập mẫu
+INSERT INTO assignments (course_id, title, description, due_date, max_score, assignment_type, status) VALUES
+(1, 'Bài tập 1: Làm quen với Java', 'Viết chương trình Hello World và các ví dụ cơ bản', DATE_ADD(CURDATE(), INTERVAL 7 DAY), 100, 'homework', 'published'),
+(1, 'Bài tập 2: Xử lý mảng', 'Thực hành với mảng một chiều và hai chiều', DATE_ADD(CURDATE(), INTERVAL 14 DAY), 100, 'homework', 'published'),
+(2, 'Quiz 1: Spring Boot Basics', 'Câu hỏi trắc nghiệm về Spring Boot', DATE_ADD(CURDATE(), INTERVAL 5 DAY), 50, 'quiz', 'published'),
+(2, 'Dự án cuối kỳ: Web Application', 'Xây dựng ứng dụng web hoàn chỉnh', DATE_ADD(CURDATE(), INTERVAL 60 DAY), 200, 'project', 'published'),
+(3, 'Bài tập Data Analysis', 'Phân tích dữ liệu với Pandas', DATE_ADD(CURDATE(), INTERVAL 10 DAY), 150, 'homework', 'published');
+
+-- Bài nộp mẫu
+INSERT INTO submissions (assignment_id, student_id, content, status, submitted_date) VALUES
+(1, 1, 'Đã hoàn thành bài tập Hello World và các ví dụ cơ bản', 'graded', CURDATE()),
+(1, 2, 'Bài tập đã hoàn thành', 'submitted', CURDATE()),
+(2, 1, 'Đã làm bài tập mảng', 'submitted', CURDATE());
+
+-- Cập nhật điểm cho bài nộp đã chấm
+UPDATE submissions SET score = 95 WHERE submission_id = 1;
+
+-- Thông báo mẫu
+INSERT INTO announcements (course_id, instructor_id, title, content, priority) VALUES
+(1, 1, 'Chào mừng các bạn đến với khóa học Java', 'Chào mừng các bạn đã đăng ký khóa học Lập trình Java cơ bản. Chúng ta sẽ bắt đầu vào tuần tới!', 'normal'),
+(1, 1, 'Thông báo về lịch thi', 'Lịch thi giữa kỳ sẽ được thông báo sớm. Các bạn chú ý theo dõi!', 'important'),
+(2, 2, 'Tài liệu học tập đã được cập nhật', 'Các tài liệu và slide bài giảng đã được cập nhật trên hệ thống. Vui lòng tải về!', 'normal'),
+(2, 2, 'Deadline nộp dự án cuối kỳ', 'Nhắc nhở: Dự án cuối kỳ cần nộp trước ngày 31/12. Các bạn chú ý!', 'urgent');
+
+-- Tài khoản mẫu
+-- Password mặc định cho tất cả: "123456"
+-- Admin: admin / 123456
+-- Instructors: Tên đăng nhập là email (nva, ttb, lvc, ptd) / 123456
+-- Students: Tên đăng nhập là email (hvm, dtl, vvn, bth, dvt) / 123456
+
+INSERT INTO users (username, password, email, role, reference_id) VALUES
+-- Admin
+('admin', 'e10adc3949ba59abbe56e057f20f883e', 'admin@course.com', 'ADMIN', 0),
+-- Giảng viên (reference_id = instructor_id)
+('nva', 'e10adc3949ba59abbe56e057f20f883e', 'nva@email.com', 'INSTRUCTOR', 1),
+('ttb', 'e10adc3949ba59abbe56e057f20f883e', 'ttb@email.com', 'INSTRUCTOR', 2),
+('lvc', 'e10adc3949ba59abbe56e057f20f883e', 'lvc@email.com', 'INSTRUCTOR', 3),
+('ptd', 'e10adc3949ba59abbe56e057f20f883e', 'ptd@email.com', 'INSTRUCTOR', 4),
+-- Sinh viên (reference_id = student_id)
+('hvm', 'e10adc3949ba59abbe56e057f20f883e', 'hvm@student.com', 'STUDENT', 1),
+('dtl', 'e10adc3949ba59abbe56e057f20f883e', 'dtl@student.com', 'STUDENT', 2),
+('vvn', 'e10adc3949ba59abbe56e057f20f883e', 'vvn@student.com', 'STUDENT', 3),
+('bth', 'e10adc3949ba59abbe56e057f20f883e', 'bth@student.com', 'STUDENT', 4),
+('dvt', 'e10adc3949ba59abbe56e057f20f883e', 'dvt@student.com', 'STUDENT', 5);
+
 -- Hoàn tất
 SELECT 'Database course_management đã được tạo thành công!' AS Message;
 SELECT 'Dữ liệu mẫu đã được thêm vào!' AS Message;
+SELECT 'Tài khoản mẫu: admin/123456, nva/123456, hvm/123456, ...' AS Message;
 
