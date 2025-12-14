@@ -33,6 +33,9 @@ public class Enrollment {
     @JsonIgnore
     private Course course;
     
+    @Column(name = "period_id")
+    private Integer periodId;
+    
     @Column(name = "enrollment_date")
     private LocalDate enrollmentDate;
     
@@ -97,6 +100,14 @@ public class Enrollment {
 
     public void setCourse(Course course) {
         this.course = course;
+    }
+
+    public Integer getPeriodId() {
+        return periodId;
+    }
+
+    public void setPeriodId(Integer periodId) {
+        this.periodId = periodId;
     }
 
     public LocalDate getEnrollmentDate() {

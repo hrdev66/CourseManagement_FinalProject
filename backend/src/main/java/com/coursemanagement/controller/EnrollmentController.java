@@ -10,7 +10,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/enrollments")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class EnrollmentController {
     
     @Autowired

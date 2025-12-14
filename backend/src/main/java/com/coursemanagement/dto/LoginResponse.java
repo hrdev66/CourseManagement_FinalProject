@@ -6,6 +6,7 @@ public class LoginResponse {
     private String role;
     private String fullName;
     private int userId;
+    private Integer referenceId; // studentId hoặc instructorId
 
     public LoginResponse() {
     }
@@ -16,6 +17,15 @@ public class LoginResponse {
         this.role = role;
         this.fullName = fullName;
         this.userId = userId;
+    }
+
+    public LoginResponse(String token, String username, String role, String fullName, int userId, Integer referenceId) {
+        this.token = token;
+        this.username = username;
+        this.role = role;
+        this.fullName = fullName;
+        this.userId = userId;
+        this.referenceId = referenceId;
     }
 
     // Getters and Setters
@@ -57,6 +67,14 @@ public class LoginResponse {
 
     public void setUserId(int userId) {
         this.userId = userId;
+    }
+
+    public Integer getReferenceId() {
+        return referenceId;
+    }
+
+    public void setReferenceId(Integer referenceId) {
+        this.referenceId = referenceId;
     }
 }
 

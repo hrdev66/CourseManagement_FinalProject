@@ -48,7 +48,7 @@ public class AuthService {
         String token = jwtUtil.generateToken(user.getUserId(), user.getUsername(), roleStr);
         String fullName = getFullName(roleStr, user.getReferenceId());
         
-        return new LoginResponse(token, user.getUsername(), roleStr, fullName, user.getUserId());
+        return new LoginResponse(token, user.getUsername(), roleStr, fullName, user.getUserId(), user.getReferenceId());
     }
 
     @Transactional
@@ -90,7 +90,7 @@ public class AuthService {
                                             user.getRole().toString());
         
         return new LoginResponse(token, user.getUsername(), user.getRole().toString(), 
-                                student.getFullName(), user.getUserId());
+                                student.getFullName(), user.getUserId(), student.getStudentId());
     }
 
     private String getFullName(String role, Integer referenceId) {

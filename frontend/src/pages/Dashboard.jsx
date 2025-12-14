@@ -11,34 +11,57 @@ import { dashboardService } from "../services/dashboardService";
 
 const StatCard = ({ title, value, icon, color, loading }) => (
   <Paper
-    elevation={2}
+    elevation={1}
     sx={{
-      p: 3,
+      p: 2.5,
       display: "flex",
       alignItems: "center",
       gap: 2,
-      background: `linear-gradient(135deg, ${color}15 0%, ${color}05 100%)`,
+      bgcolor: 'background.paper',
+      border: `1px solid rgba(0, 0, 0, 0.08)`,
+      borderRadius: 2,
+      transition: 'box-shadow 0.2s',
+      '&:hover': {
+        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+      },
     }}
   >
     <Box
       sx={{
         p: 2,
-        borderRadius: 2,
-        bgcolor: `${color}20`,
+        borderRadius: 1.5,
+        bgcolor: `${color}15`,
         color: color,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}
     >
       {icon}
     </Box>
-    <Box>
+    <Box sx={{ flex: 1 }}>
       {loading ? (
-        <CircularProgress size={24} />
+        <CircularProgress size={20} sx={{ color: color }} />
       ) : (
-        <Typography variant="h4" fontWeight="bold">
-          {value}
+        <Typography 
+          variant="h5" 
+          fontWeight={600}
+          sx={{ 
+            color: 'text.primary',
+            mb: 0.3,
+            fontSize: '1.5rem',
+          }}
+        >
+          {value?.toLocaleString('vi-VN') || 0}
         </Typography>
       )}
-      <Typography variant="body2" color="text.secondary">
+      <Typography 
+        variant="body2" 
+        color="text.secondary"
+        sx={{ 
+          fontSize: '0.85rem',
+        }}
+      >
         {title}
       </Typography>
     </Box>
@@ -64,14 +87,55 @@ function Dashboard() {
     fetchStats();
   }, []);
 
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case 'ADMIN': return 'Quản trị viên';
+      case 'INSTRUCTOR': return 'Giảng viên';
+      case 'STUDENT': return 'Sinh viên';
+      default: return role;
+    }
+  };
+
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Chào mừng, {user?.fullName || user?.username}! 👋
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-        Vai trò: <strong>{user?.role}</strong>
-      </Typography>
+      <Box sx={{ mb: 4 }}>
+        <Typography 
+          variant="h4" 
+          gutterBottom
+          sx={{ 
+            fontWeight: 700,
+            mb: 1,
+            color: 'text.primary',
+          }}
+        >
+          Chào mừng trở lại, {user?.fullName || user?.username}! 👋
+        </Typography>
+        <Typography 
+          variant="body1" 
+          color="text.secondary"
+          sx={{ 
+            fontSize: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Box
+            component="span"
+            sx={{
+              px: 1.2,
+              py: 0.4,
+              borderRadius: 1,
+              bgcolor: 'primary.main',
+              color: 'white',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+            }}
+          >
+            {getRoleLabel(user?.role)}
+          </Box>
+        </Typography>
+      </Box>
 
       <Grid container spacing={3}>
         <Grid item xs={12} sm={6} md={3}>
